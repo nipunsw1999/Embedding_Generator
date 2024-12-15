@@ -1,14 +1,9 @@
 
 from PyPDF2 import PdfReader
-from dotenv import load_dotenv
-
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_openai import OpenAI, OpenAIEmbeddings
-from langchain.embeddings import HuggingFaceInstructEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationalRetrievalChain
-from langchain.chat_models import ChatOpenAI
+
 
 def get_pdf_content(documents):
     raw_text = ""
