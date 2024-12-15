@@ -1,35 +1,51 @@
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+import google.generativeai as genai
+import pandas as pd
+import tempfile
+import os
+from dotenv import load_dotenv
 
-from PyPDF2 import PdfReader
-from langchain.text_splitter import CharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import FAISS
+load_dotenv()
 
+os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
+genai.configure(api_key=os.getenv("GEN_AI_KEY"))
 
-def get_pdf_content(documents):
-    raw_text = ""
-
-    for document in documents:
-        pdf_reader = PdfReader(document)
-        for page in pdf_reader.pages:
-            raw_text += page.extract_text()
-
-    return raw_text
-
-
-def get_chunks(text):
-    text_splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=1000,
-        chunk_overlap=200,
-        length_function=len
-    )
-    text_chunks = text_splitter.split_text(text)
-    return text_chunks
+def get_embeddings(text):
+    model = 'models/embedding-001'
+    embedding = genai.embed_content(model=model,
+                                    content=text,
+                                    task_type="retrieval_document")
+    return embedding['embedding']
 
 
-def get_embeddings(chunks):
-    embeddings = OpenAIEmbeddings()
-    # embeddings = HuggingFaceInstructEmbeddings(model_name="")
-    vector_storage = FAISS.from_texts(texts=chunks, embedding=embeddings)
 
-    return vector_storage
+
+def pdf_load(pdf, limit: int):
+    """
+    Load text from a PDF using PyPDFLoader with a page limit.
+    :param pdf: File-like object or file path.
+    :param limit: Number of pages to process.
+    :return: Combined text from the specified number of pages.
+    """
+    try:
+        # Save the BytesIO to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+            tmp_file.write(pdf.read())
+            tmp_file_path = tmp_file.name
+
+        loader = PyPDFLoader(tmp_file_path)
+        pages = loader.load_and_split()
+
+        # Adjust limit to avoid exceeding total pages
+        total_pages = len(pages)
+        limit = min(limit, total_pages)
+
+        # Extract text from the specified pages
+        text = "\n".join([doc.page_content for doc in pages[:limit] if doc.page_content.strip()])
+
+        return text
+
+    except Exception as e:
+        raise ValueError(f"Error loading PDF: {str(e)}")
+
