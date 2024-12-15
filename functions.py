@@ -27,7 +27,6 @@ def progress_bar(title:str):
         bar.progress(percent_complete + 1,text=title)
     time.sleep(1)
     bar.empty()
-    completed("Completed")
 
 def model_train():
     st.empty()
