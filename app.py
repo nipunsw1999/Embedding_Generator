@@ -22,39 +22,41 @@ if start:
         # Check the uploaded file type
         if uploaded_file.type == "application/pdf":
             
+            with st.spinner('Wait for it...'):
             # Wrap uploaded_file to BytesIO for compatibility with PyPDFLoader
-            text = pdf_load(BytesIO(uploaded_file.read()), 4)
-            
-            text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=500,
-                chunk_overlap=150,
-                length_function=len,
-                is_separator_regex=False,
-            )
-            
-            docs = text_splitter.create_documents([text])
-            for i, d in enumerate(docs):
-                d.metadata = {"doc_id": i}
+                text = pdf_load(BytesIO(uploaded_file.read()), 4)
                 
-            # Get the page_content from the documents and create a new list
-            content_list = [doc.page_content for doc in docs]
-            # Send one page_content at a time
-            embeddings = [get_embeddings(content) for content in content_list]
-            
-            # Create a dataframe to ingest it to the database
-            dataframe = pd.DataFrame({
-                'page_content': content_list,
-                'embeddings': embeddings
-            })
-            
-            csv_data = dataframe.to_csv(index=False)
-            
-            st.download_button(
-                    label='Download',
-                    data=csv_data,
-                    file_name=f'{uploaded_file.name} embeddings.csv',
-                    mime='text/csv',
-            )
+                text_splitter = RecursiveCharacterTextSplitter(
+                    chunk_size=500,
+                    chunk_overlap=150,
+                    length_function=len,
+                    is_separator_regex=False,
+                )
+                
+                docs = text_splitter.create_documents([text])
+                for i, d in enumerate(docs):
+                    d.metadata = {"doc_id": i}
+                    
+                # Get the page_content from the documents and create a new list
+                content_list = [doc.page_content for doc in docs]
+                # Send one page_content at a time
+                embeddings = [get_embeddings(content) for content in content_list]
+                
+                # Create a dataframe to ingest it to the database
+                dataframe = pd.DataFrame({
+                    'page_content': content_list,
+                    'embeddings': embeddings
+                })
+                
+                csv_data = dataframe.to_csv(index=False)
+                st.toast('Ready to download', icon='🌟')
+                st.snow()
+                st.download_button(
+                        label='Download',
+                        data=csv_data,
+                        file_name=f'{uploaded_file.name} embeddings.csv',
+                        mime='text/csv',
+                )
         else:
             err("Invalid file type uploaded. Please upload a PDF file.", 3)
     else:
