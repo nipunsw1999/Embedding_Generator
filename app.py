@@ -21,7 +21,6 @@ if start:
     if uploaded_file:
         # Check the uploaded file type
         if uploaded_file.type == "application/pdf":
-            completed(f"File name: {uploaded_file.name} uploaded!", 2)
             
             # Wrap uploaded_file to BytesIO for compatibility with PyPDFLoader
             text = pdf_load(BytesIO(uploaded_file.read()), 4)
