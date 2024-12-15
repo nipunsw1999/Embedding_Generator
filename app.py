@@ -1,4 +1,4 @@
-from PyPDF2 import PdfReader
+import time
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -16,13 +16,13 @@ genai.configure(api_key=os.getenv("GEN_AI_KEY"))
 st.title("Embedding Generator")
 
 uploaded_file = st.file_uploader("Upload a single PDF file", type=["pdf"], accept_multiple_files=False)
-start = st.button("Start Embedding Generator")
+start = st.button(":green[Start Embedding Generator]")
 if start:
     if uploaded_file:
         # Check the uploaded file type
         if uploaded_file.type == "application/pdf":
             
-            with st.spinner('Wait for it...'):
+            with st.spinner(f'Wait for it...'):
             # Wrap uploaded_file to BytesIO for compatibility with PyPDFLoader
                 text = pdf_load(BytesIO(uploaded_file.read()), 4)
                 
@@ -51,10 +51,11 @@ if start:
                 csv_data = dataframe.to_csv(index=False)
                 st.toast('Ready to download', icon='🌟')
                 st.snow()
+                name = uploaded_file.name[:-4]
                 st.download_button(
-                        label='Download',
+                        label=':red[Download]',
                         data=csv_data,
-                        file_name=f'{uploaded_file.name} embeddings.csv',
+                        file_name=f'{name} embeddings.csv',
                         mime='text/csv',
                 )
         else:
