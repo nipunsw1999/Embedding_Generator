@@ -1,0 +1,10 @@
+streamlit
+PyPDF2
+dotenv
+langchain
+langchain-openai
+langchain-embeddings
+langchain-community
+openai
+faiss-cpu
+transformers
